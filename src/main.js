@@ -1,3 +1,4 @@
+import "./style.css";
 import { AudioProcessor } from "./engine/processor.js";
 import { renderApiConfigPanel } from "./ui/apiPanel.js";
 import {
