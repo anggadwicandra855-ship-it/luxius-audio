@@ -4,7 +4,6 @@ export function createEditor(item) {
   const volume = typeof item.settings?.volume === "number" ? item.settings.volume : 1;
   const adjustedDuration = getPreviewDuration(item.duration, speed);
   
-  // Wajib ada asset ID asli dan status upload sukses baru box ini boleh muncul!
   const isUploaded = Boolean(item.uploadedAssetId);
   const formattedAssetId = isUploaded ? `rbxassetid://${item.uploadedAssetId}` : "";
 
@@ -15,10 +14,9 @@ export function createEditor(item) {
           <p class="eyebrow">AUDIO EDITOR</p>
           <h3>${escapeHtml(item.name)}</h3>
         </div>
-        <button class="editor-close" type="button" data-action="close-editor" data-id="${item.id}">×</button>
+        <button class="editor-close" type="button" data-action="close-editor" data-id="${item.id}">✕</button>
       </div>
 
-      <!-- STATUS BADGE -->
       <div class="status-pipeline-bar" id="status-bar-${item.id}">
         <span class="status-badge ${item.statusClass || 'status-ready'}" id="status-badge-${item.id}">
           ${item.statusText || "STATUS: READY TO PROCESS"}
@@ -28,7 +26,7 @@ export function createEditor(item) {
       <div class="editor-player">
         <div class="playback-controls">
           <button class="playback-button play-control" type="button" data-action="editor-play" data-id="${item.id}" id="play-btn-${item.id}">▶</button>
-          <button class="playback-button pause-control" type="button" data-action="editor-pause" data-id="${item.id}" id="pause-btn-${item.id}" hidden style="background: #e65c00; border: none;">Ⅱ</button>
+          <button class="playback-button pause-control" type="button" data-action="editor-pause" data-id="${item.id}" id="pause-btn-${item.id}" hidden>⏸</button>
           <button class="playback-button stop-control" type="button" data-action="editor-stop" data-id="${item.id}">■</button>
         </div>
 
@@ -39,12 +37,11 @@ export function createEditor(item) {
         </div>
 
         <div class="seek-wrapper">
-          <input class="lux-range seek-input" type="range" min="0" max="100" step="0.01" value="0" data-control="seek" data-id="${item.id}" />
+          <input class="lux-range seek-input" id="seek-slider-${item.id}" type="range" min="0" max="${adjustedDuration || 100}" step="0.1" value="0" data-control="seek" data-id="${item.id}" />
         </div>
       </div>
 
       <div class="editor-controls">
-        <!-- SPEED -->
         <div class="editor-control">
           <div class="control-heading">
             <label>Speed</label>
@@ -54,7 +51,6 @@ export function createEditor(item) {
           <div class="range-hints"><span>0.25x</span><span>2.00x</span></div>
         </div>
 
-        <!-- PITCH -->
         <div class="editor-control">
           <div class="control-heading">
             <label>Pitch</label>
@@ -64,7 +60,6 @@ export function createEditor(item) {
           <div class="range-hints"><span>-12 st</span><span>0</span><span>+12 st</span></div>
         </div>
 
-        <!-- VOLUME BOOST -->
         <div class="editor-control">
           <div class="control-heading">
             <label>Volume Boost</label>
@@ -87,7 +82,6 @@ export function createEditor(item) {
         </div>
       </div>
 
-      <!-- ROBLOX RESULT BOX (DEFAULT HIDDEN - BARU MUNCUL PAS SUKSES) -->
       <div class="roblox-result-box" id="result-box-${item.id}" style="display: ${isUploaded ? 'flex' : 'none'}; flex-direction: column; width: 100%; box-sizing: border-box; margin-top: 15px; padding: 16px; border: 1px solid #00ff88; border-radius: 12px; background: rgba(0, 255, 136, 0.04);">
         <label class="lux-label" style="color: #00ff88; display: block; width: 100%; text-align: center; margin-bottom: 10px; font-weight: bold; font-size: 11px;">✅ ROBLOX ASSET ID HASIL UPLOAD:</label>
         <input type="text" readonly id="asset-id-input-${item.id}" class="lux-input asset-id-input" value="${formattedAssetId}" style="width: 100%; text-align: center; color: #00ff88; font-weight: bold; font-family: monospace; padding: 12px; margin-bottom: 10px; box-sizing: border-box; background: #000; border: 1px solid #00ff88; border-radius: 8px;" />

@@ -7,6 +7,13 @@ import {
   downloadSoundRbxm
 } from "./utils/robloxHelper.js";
 
+function formatTime(seconds) {
+  if (!seconds || isNaN(seconds)) return "00:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
 window.targetType = localStorage.getItem("luxius_target_type") || "user";
 window.setTargetType = function (type) {
   window.targetType = type;
@@ -219,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         renderQueue();
       } else if (action === "editor-play") {
-        await processor.play(item.url, item.settings);
+        await processor.play(item.url, item.settings, processor.pausedAt || 0);
         updatePlaybackUI(id, true);
       } else if (action === "editor-pause") {
         processor.pause();
@@ -258,7 +265,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const item = queueItems.find((q) => q.id === id);
       if (!item) return;
 
-      if (control === "format") {
+      if (control === "seek") {
+        const val = parseFloat(input.value) || 0;
+        if (currentPlayingId === id && processor.isPlaying) {
+          processor.play(item.url, item.settings, val);
+        } else {
+          processor.pausedAt = val;
+          const timeEl = document.getElementById(`current-time-${id}`);
+          if (timeEl) timeEl.innerText = formatTime(val);
+        }
+        const totalDur = item.duration / (item.settings.speed || 1);
+        const percent = totalDur > 0 ? (val / totalDur) * 100 : 0;
+        input.style.background = `linear-gradient(to right, #ff6a00 0%, #ff6a00 ${percent}%, #22222a ${percent}%, #22222a 100%)`;
+      } else if (control === "format") {
         item.format = input.value;
       } else if (control === "speed") {
         const val = parseFloat(input.value) || 1.0;
@@ -269,9 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const durEl = document.getElementById(`adjusted-duration-${id}`);
         if (durEl && item.duration) {
-          const mins = Math.floor((item.duration / val) / 60);
-          const secs = Math.floor((item.duration / val) % 60);
-          durEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+          durEl.innerText = formatTime(item.duration / val);
         }
       } else if (control === "pitch") {
         const val = parseInt(input.value, 10) || 0;
@@ -286,6 +303,24 @@ document.addEventListener("DOMContentLoaded", () => {
         processor.setVolume(safeVal);
         const el = document.getElementById(`volume-value-${id}`);
         if (el) el.innerText = `${Math.round(safeVal * 100)}%`;
+      }
+    };
+
+    // 🔑 TIMER REAL-TIME & SEEK BAR BERJALAN DENGAN WARNA ORANYE PRESISI
+    processor.onTimeUpdate = (currentTime, duration) => {
+      if (!currentPlayingId) return;
+      const timeEl = document.getElementById(`current-time-${currentPlayingId}`);
+      const seekEl = document.getElementById(`seek-slider-${currentPlayingId}`);
+
+      if (timeEl) {
+        timeEl.innerText = formatTime(currentTime);
+      }
+
+      if (seekEl && duration > 0) {
+        const percent = (currentTime / duration) * 100;
+        seekEl.value = currentTime;
+        seekEl.max = duration;
+        seekEl.style.background = `linear-gradient(to right, #ff6a00 0%, #ff6a00 ${percent}%, #22222a ${percent}%, #22222a 100%)`;
       }
     };
 
@@ -393,7 +428,6 @@ document.addEventListener("DOMContentLoaded", () => {
       item.uploadedAssetId = assetId;
       updateItemStatus(item.id, `STATUS: UPLOAD SUCCESSFUL (${sizeMB.toFixed(2)} MB)!`, "status-success");
 
-      // Tampilkan kotak Roblox Asset ID SEKARANG (secara dinamis saat sukses)
       const resultBox = document.getElementById(`result-box-${item.id}`);
       const assetInput = document.getElementById(`asset-id-input-${item.id}`);
       if (resultBox && assetInput) {
