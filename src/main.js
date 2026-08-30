@@ -1,7 +1,7 @@
 import "./style.css";
 import { AudioProcessor } from "./engine/processor.js";
 import { renderApiConfigPanel } from "./ui/apiPanel.js";
-import { createEditor } from "./ui/controls.js";
+import { createEditor, formatPitch } from "./ui/controls.js";
 import {
   generateRandomAssetTitle,
   downloadSoundRbxm
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
         url: URL.createObjectURL(file),
         duration: 0,
-        settings: { speed: 1, pitch: 0, volume: 1 },
+        settings: { speed: 1.0, pitch: 0, volume: 1.0 },
         isEditorOpen: false,
         uploadedAssetId: null,
         format: "ogg",
@@ -174,7 +174,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 🔑 UPDATE STATUS BADGE SECARA REAL-TIME TANPA RE-RENDER DOM GLITCH
   function updateItemStatus(id, text, badgeClass) {
     const item = queueItems.find(q => q.id === id);
     if (item) {
@@ -229,8 +228,10 @@ document.addEventListener("DOMContentLoaded", () => {
         processor.stop();
         updatePlaybackUI(id, false);
       } else if (action === "reset-settings") {
-        item.settings.speed = 1.0;
+        item.settings = { speed: 1.0, pitch: 0, volume: 1.0 };
         processor.setSpeed(1.0);
+        processor.setPitch(0);
+        processor.setVolume(1.0);
         renderQueue();
       } else if (action === "export-audio") {
         exportAudioFile(item);
@@ -260,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (control === "format") {
         item.format = input.value;
       } else if (control === "speed") {
-        const val = parseFloat(input.value);
+        const val = parseFloat(input.value) || 1.0;
         item.settings.speed = val;
         processor.setSpeed(val);
         const el = document.getElementById(`speed-value-${id}`);
@@ -272,6 +273,19 @@ document.addEventListener("DOMContentLoaded", () => {
           const secs = Math.floor((item.duration / val) % 60);
           durEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
+      } else if (control === "pitch") {
+        const val = parseInt(input.value, 10) || 0;
+        item.settings.pitch = val;
+        processor.setPitch(val);
+        const el = document.getElementById(`pitch-value-${id}`);
+        if (el) el.innerText = formatPitch(val);
+      } else if (control === "volume") {
+        const val = parseFloat(input.value);
+        const safeVal = isNaN(val) ? 1.0 : val;
+        item.settings.volume = safeVal;
+        processor.setVolume(safeVal);
+        const el = document.getElementById(`volume-value-${id}`);
+        if (el) el.innerText = `${Math.round(safeVal * 100)}%`;
       }
     };
 
@@ -379,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.uploadedAssetId = assetId;
       updateItemStatus(item.id, `STATUS: UPLOAD SUCCESSFUL (${sizeMB.toFixed(2)} MB)!`, "status-success");
 
-      // Buka otomatis kotak Roblox Asset ID setelah sukses
+      // Tampilkan kotak Roblox Asset ID SEKARANG (secara dinamis saat sukses)
       const resultBox = document.getElementById(`result-box-${item.id}`);
       const assetInput = document.getElementById(`asset-id-input-${item.id}`);
       if (resultBox && assetInput) {

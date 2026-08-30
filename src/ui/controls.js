@@ -1,9 +1,11 @@
 export function createEditor(item) {
-  const speed = Number(item.settings.speed) || 1;
-  const pitch = Number(item.settings.pitch) || 0;
-  const volume = Number(item.settings.volume) ?? 1;
+  const speed = typeof item.settings?.speed === "number" ? item.settings.speed : 1;
+  const pitch = typeof item.settings?.pitch === "number" ? item.settings.pitch : 0;
+  const volume = typeof item.settings?.volume === "number" ? item.settings.volume : 1;
   const adjustedDuration = getPreviewDuration(item.duration, speed);
-  const isUploaded = !!item.uploadedAssetId;
+  
+  // Wajib ada asset ID asli dan status upload sukses baru box ini boleh muncul!
+  const isUploaded = Boolean(item.uploadedAssetId);
   const formattedAssetId = isUploaded ? `rbxassetid://${item.uploadedAssetId}` : "";
 
   return `
@@ -16,7 +18,7 @@ export function createEditor(item) {
         <button class="editor-close" type="button" data-action="close-editor" data-id="${item.id}">×</button>
       </div>
 
-      <!-- STATUS BADGE REAL-TIME DYNAMIC -->
+      <!-- STATUS BADGE -->
       <div class="status-pipeline-bar" id="status-bar-${item.id}">
         <span class="status-badge ${item.statusClass || 'status-ready'}" id="status-badge-${item.id}">
           ${item.statusText || "STATUS: READY TO PROCESS"}
@@ -85,7 +87,7 @@ export function createEditor(item) {
         </div>
       </div>
 
-      <!-- ROBLOX RESULT BOX (FIXED VERTICAL LAYOUT - ANTI BENTROK) -->
+      <!-- ROBLOX RESULT BOX (DEFAULT HIDDEN - BARU MUNCUL PAS SUKSES) -->
       <div class="roblox-result-box" id="result-box-${item.id}" style="display: ${isUploaded ? 'flex' : 'none'}; flex-direction: column; width: 100%; box-sizing: border-box; margin-top: 15px; padding: 16px; border: 1px solid #00ff88; border-radius: 12px; background: rgba(0, 255, 136, 0.04);">
         <label class="lux-label" style="color: #00ff88; display: block; width: 100%; text-align: center; margin-bottom: 10px; font-weight: bold; font-size: 11px;">✅ ROBLOX ASSET ID HASIL UPLOAD:</label>
         <input type="text" readonly id="asset-id-input-${item.id}" class="lux-input asset-id-input" value="${formattedAssetId}" style="width: 100%; text-align: center; color: #00ff88; font-weight: bold; font-family: monospace; padding: 12px; margin-bottom: 10px; box-sizing: border-box; background: #000; border: 1px solid #00ff88; border-radius: 8px;" />
@@ -134,7 +136,7 @@ function formatDuration(seconds) {
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function formatPitch(pitch) {
+export function formatPitch(pitch) {
   const val = Number(pitch) || 0;
   if (val > 0) return `+${val} st`;
   if (val < 0) return `${val} st`;
