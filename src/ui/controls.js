@@ -16,14 +16,17 @@ export function createEditor(item) {
         <button class="editor-close" type="button" data-action="close-editor" data-id="${item.id}">×</button>
       </div>
 
+      <!-- STATUS BADGE REAL-TIME DYNAMIC -->
       <div class="status-pipeline-bar" id="status-bar-${item.id}">
-        <span class="status-badge status-ready" id="status-badge-${item.id}">${item.statusText || "STATUS: READY TO PROCESS"}</span>
+        <span class="status-badge ${item.statusClass || 'status-ready'}" id="status-badge-${item.id}">
+          ${item.statusText || "STATUS: READY TO PROCESS"}
+        </span>
       </div>
 
       <div class="editor-player">
         <div class="playback-controls">
-          <button class="playback-button play-control" type="button" data-action="editor-play" data-id="${item.id}">▶</button>
-          <button class="playback-button pause-control" type="button" data-action="editor-pause" data-id="${item.id}" hidden>Ⅱ</button>
+          <button class="playback-button play-control" type="button" data-action="editor-play" data-id="${item.id}" id="play-btn-${item.id}">▶</button>
+          <button class="playback-button pause-control" type="button" data-action="editor-pause" data-id="${item.id}" id="pause-btn-${item.id}" hidden style="background: #e65c00; border: none;">Ⅱ</button>
           <button class="playback-button stop-control" type="button" data-action="editor-stop" data-id="${item.id}">■</button>
         </div>
 
@@ -82,13 +85,13 @@ export function createEditor(item) {
         </div>
       </div>
 
-      <!-- ROBLOX RESULT BOX (VERTICAL CLEAN LAYOUT - ANTI POTONG) -->
-      <div class="roblox-result-box" id="result-box-${item.id}" style="display: ${isUploaded ? 'block' : 'none'}; margin-top: 15px; padding: 16px; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 12px; background: rgba(0, 255, 136, 0.04);">
-        <label class="lux-label" style="color: #00ff88; display: block; text-align: center; margin-bottom: 8px; font-weight: bold;">✅ ROBLOX ASSET ID RESULT</label>
-        <div style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
-          <input type="text" readonly id="asset-id-input-${item.id}" class="lux-input asset-id-input" value="${formattedAssetId}" style="text-align: center; color: #00ff88; font-weight: bold; font-family: monospace; width: 100%; box-sizing: border-box;" />
-          <button type="button" class="action-button copy-btn" data-action="copy-asset-id" data-id="${item.id}" style="background: #00ff88; color: #000; border: none; font-weight: bold; width: 100%; padding: 12px; cursor: pointer;">📋 COPY ID</button>
-          <button type="button" class="primary-button rbxm-btn" data-action="download-rbxm" data-id="${item.id}" style="background: #141418; color: #00ff88; border: 1px solid #00ff88; font-weight: bold; width: 100%; padding: 12px; cursor: pointer;">📦 DOWNLOAD .RBXM</button>
+      <!-- ROBLOX RESULT BOX (FIXED VERTICAL LAYOUT - ANTI BENTROK) -->
+      <div class="roblox-result-box" id="result-box-${item.id}" style="display: ${isUploaded ? 'flex' : 'none'}; flex-direction: column; width: 100%; box-sizing: border-box; margin-top: 15px; padding: 16px; border: 1px solid #00ff88; border-radius: 12px; background: rgba(0, 255, 136, 0.04);">
+        <label class="lux-label" style="color: #00ff88; display: block; width: 100%; text-align: center; margin-bottom: 10px; font-weight: bold; font-size: 11px;">✅ ROBLOX ASSET ID HASIL UPLOAD:</label>
+        <input type="text" readonly id="asset-id-input-${item.id}" class="lux-input asset-id-input" value="${formattedAssetId}" style="width: 100%; text-align: center; color: #00ff88; font-weight: bold; font-family: monospace; padding: 12px; margin-bottom: 10px; box-sizing: border-box; background: #000; border: 1px solid #00ff88; border-radius: 8px;" />
+        <div style="display: flex; flex-direction: column; width: 100%; gap: 8px;">
+          <button type="button" class="action-button copy-btn" data-action="copy-asset-id" data-id="${item.id}" style="background: #00ff88; color: #000; border: none; font-weight: bold; width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 12px;">📋 COPY ASSET ID</button>
+          <button type="button" class="primary-button rbxm-btn" data-action="download-rbxm" data-id="${item.id}" style="background: #141418; color: #00ff88; border: 1px solid #00ff88; font-weight: bold; width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 12px;">📦 DOWNLOAD .RBXM</button>
         </div>
       </div>
 
