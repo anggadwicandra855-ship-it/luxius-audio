@@ -55,10 +55,6 @@ export class AudioProcessor {
     return this.audioBuffer;
   }
 
-  async preview(url, settings = {}, startTime = 0) {
-    await this.play(url, settings, startTime);
-  }
-
   async play(url, settings = {}, startTime = 0) {
     await this.resumeContext();
     this.destroySource();
@@ -172,8 +168,8 @@ export class AudioProcessor {
     const pitch = Number(settings.pitch) || this.currentSettings.pitch || 0;
     const volume = Number(settings.volume) ?? this.currentSettings.volume ?? 1;
 
-    const numberOfChannels = this.audioBuffer.numberOfChannels;
-    const sampleRate = this.audioBuffer.sampleRate;
+    const numberOfChannels = 1; // Downmix ke Mono agar ukuran file mengecil & stabil
+    const sampleRate = 22050;   // Resample ke 22.05kHz (Sangat optimal & irit ukuran untuk Roblox)
     const renderedDuration = this.audioBuffer.duration / speed;
     const length = Math.ceil(renderedDuration * sampleRate);
 
@@ -199,30 +195,14 @@ export class AudioProcessor {
     return await offlineCtx.startRendering();
   }
 
-  // 🔑 REAL MULTI-FORMAT AUDIO ENCODER BLOB (OGG, MP3, WAV, FLAC)
   async exportAudioBlob(buffer, format = "ogg") {
-    const mimeTypes = {
-      ogg: "audio/ogg",
-      mp3: "audio/mpeg",
-      wav: "audio/wav",
-      flac: "audio/flac"
-    };
-
-    const mime = mimeTypes[format] || "audio/ogg";
-
-    // 1. Jika WAV: Gunakan Mono Downmix PCM
-    if (format === "wav") {
-      return this.audioBufferToWavBlob(buffer);
-    }
-
-    // 2. Jika OGG / MP3 / FLAC: Encode via Fast Mono Data Buffer dengan Mime Type yang Presisi
-    const monoBlob = this.audioBufferToWavBlob(buffer);
-    return new Blob([await monoBlob.arrayBuffer()], { type: mime });
+    const wavBlob = this.audioBufferToWavBlob(buffer);
+    const mime = format === "mp3" ? "audio/mpeg" : (format === "wav" ? "audio/wav" : "audio/ogg");
+    return new Blob([await wavBlob.arrayBuffer()], { type: mime });
   }
 
-  // MONO DOWNMIX WAV BLOB (< 15MB GUARANTEE)
   audioBufferToWavBlob(buffer) {
-    const numChannels = 1; // Downmix Stereo -> Mono
+    const numChannels = 1;
     const sampleRate = buffer.sampleRate;
     const length = buffer.length;
 

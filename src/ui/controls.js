@@ -3,6 +3,8 @@ export function createEditor(item) {
   const pitch = Number(item.settings.pitch) || 0;
   const volume = Number(item.settings.volume) ?? 1;
   const adjustedDuration = getPreviewDuration(item.duration, speed);
+  const isUploaded = !!item.uploadedAssetId;
+  const formattedAssetId = isUploaded ? `rbxassetid://${item.uploadedAssetId}` : "";
 
   return `
     <div class="audio-editor" data-editor="${item.id}">
@@ -15,7 +17,7 @@ export function createEditor(item) {
       </div>
 
       <div class="status-pipeline-bar" id="status-bar-${item.id}">
-        <span class="status-badge status-ready" id="status-badge-${item.id}">STATUS: READY TO PROCESS</span>
+        <span class="status-badge status-ready" id="status-badge-${item.id}">${item.statusText || "STATUS: READY TO PROCESS"}</span>
       </div>
 
       <div class="editor-player">
@@ -57,7 +59,7 @@ export function createEditor(item) {
           <div class="range-hints"><span>-12 st</span><span>0</span><span>+12 st</span></div>
         </div>
 
-        <!-- VOLUME BOOST (0% - 200%) -->
+        <!-- VOLUME BOOST -->
         <div class="editor-control">
           <div class="control-heading">
             <label>Volume Boost</label>
@@ -71,22 +73,22 @@ export function createEditor(item) {
       <div class="export-options-card">
         <div class="option-row">
           <label class="lux-label">EXPORT FORMAT</label>
-          <select class="lux-select" id="format-select-${item.id}">
-            <option value="ogg" selected>OGG (.ogg) - Recommended for Roblox</option>
-            <option value="mp3">MP3 (.mp3)</option>
-            <option value="wav">WAV (.wav)</option>
-            <option value="flac">FLAC (.flac)</option>
+          <select class="lux-select" id="format-select-${item.id}" data-control="format" data-id="${item.id}">
+            <option value="ogg" ${item.format === 'ogg' ? 'selected' : ''}>OGG (.ogg) - Recommended for Roblox</option>
+            <option value="mp3" ${item.format === 'mp3' ? 'selected' : ''}>MP3 (.mp3)</option>
+            <option value="wav" ${item.format === 'wav' ? 'selected' : ''}>WAV (.wav)</option>
+            <option value="flac" ${item.format === 'flac' ? 'selected' : ''}>FLAC (.flac)</option>
           </select>
         </div>
       </div>
 
-      <!-- RESULT BOX (AUTO ACTIVE PAS UPLOAD SUCCESS) -->
-      <div class="roblox-result-box" id="result-box-${item.id}" style="display: none; margin-top: 15px;">
-        <label class="lux-label">ROBLOX ASSET ID RESULT</label>
-        <div class="copy-input-group" style="display: flex; gap: 8px;">
-          <input type="text" readonly id="asset-id-input-${item.id}" class="lux-input asset-id-input" value="" />
-          <button type="button" class="action-button copy-btn" data-action="copy-asset-id" data-id="${item.id}">📋 COPY ID</button>
-          <button type="button" class="primary-button rbxm-btn" data-action="download-rbxm" data-id="${item.id}">📦 DOWNLOAD .RBXM</button>
+      <!-- ROBLOX RESULT BOX (VERTICAL CLEAN LAYOUT - ANTI POTONG) -->
+      <div class="roblox-result-box" id="result-box-${item.id}" style="display: ${isUploaded ? 'block' : 'none'}; margin-top: 15px; padding: 16px; border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 12px; background: rgba(0, 255, 136, 0.04);">
+        <label class="lux-label" style="color: #00ff88; display: block; text-align: center; margin-bottom: 8px; font-weight: bold;">✅ ROBLOX ASSET ID RESULT</label>
+        <div style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
+          <input type="text" readonly id="asset-id-input-${item.id}" class="lux-input asset-id-input" value="${formattedAssetId}" style="text-align: center; color: #00ff88; font-weight: bold; font-family: monospace; width: 100%; box-sizing: border-box;" />
+          <button type="button" class="action-button copy-btn" data-action="copy-asset-id" data-id="${item.id}" style="background: #00ff88; color: #000; border: none; font-weight: bold; width: 100%; padding: 12px; cursor: pointer;">📋 COPY ID</button>
+          <button type="button" class="primary-button rbxm-btn" data-action="download-rbxm" data-id="${item.id}" style="background: #141418; color: #00ff88; border: 1px solid #00ff88; font-weight: bold; width: 100%; padding: 12px; cursor: pointer;">📦 DOWNLOAD .RBXM</button>
         </div>
       </div>
 
@@ -95,9 +97,7 @@ export function createEditor(item) {
           <span>ORIGINAL</span>
           <strong>${formatDuration(item.duration || 0)}</strong>
         </div>
-
         <div class="duration-arrow">→</div>
-
         <div class="duration-block">
           <span>CURRENT SPEED</span>
           <strong id="adjusted-duration-${item.id}">${formatDuration(adjustedDuration)}</strong>
